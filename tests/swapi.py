@@ -2,11 +2,12 @@ import requests
 import json
 from pathlib import Path
 
+
 class APIRequester():
-    
+
     def __init__(self, base_url):
         self.base_url = base_url
-    
+
     def get(self, sw_type=''):
         try:
             url = ''
@@ -22,29 +23,30 @@ class APIRequester():
             if respons.status_code == 200:
                 return respons
             else:
-                 return '<ошибка на сервере>'
+                return '<ошибка на сервере>'
 
         except requests.ConnectionError:
-              print('Возникла ошибка при выполнении запроса')
-              return 'сетевая ошибка'
+            print('Возникла ошибка при выполнении запроса')
+            return 'сетевая ошибка'
         except requests.RequestException:
-              print('Возникла ошибка при выполнении запроса')
-              return 'ошибка соединения'
+            print('Возникла ошибка при выполнении запроса')
+            return 'ошибка соединения'
         except requests.HTTPError:
-              print('Возникла ошибка при выполнении запроса')
-              return 'HTTP сервера'
+            print('Возникла ошибка при выполнении запроса')
+            return 'HTTP сервера'
         except requests.Timeout:
-              print('Возникла ошибка при выполнении запроса')
-              return 'тай маут ошибка'
+            print('Возникла ошибка при выполнении запроса')
+            return 'тай маут ошибка'
+
 
 class SWRequester(APIRequester):
-     
+
     def get_sw_categories(self):
         if self.base_url.endswith('/'):
             url = self.base_url
         else:
             url = f'{self.base_url}/'
-            
+
         try:
             response = requests.get(url)
             if response.status_code == 200:
@@ -63,18 +65,17 @@ class SWRequester(APIRequester):
         except json.JSONDecodeError:
             return "Ошибка декодирования JSON"
 
-     
     def get_sw_info(self, sw_type):
         if not sw_type or not sw_type.strip():
             return "Ошибка: тип не может быть пустым"
-        
+
         if self.base_url.endswith('/') and sw_type.startswith('/'):
             url = f'{self.base_url}{sw_type[1:]}/'
         elif not self.base_url.endswith('/') and not sw_type.startswith('/'):
             url = f'{self.base_url}/{sw_type}/'
         else:
             url = f'{self.base_url}{sw_type}/'
-            
+
         try:
             response = requests.get(url)
             if response.status_code == 200:
@@ -86,7 +87,7 @@ class SWRequester(APIRequester):
         except requests.RequestException:
             return 'ошибка соединения'
 
-    
+
 def save_sw_data():
     Path("data").mkdir(exist_ok=True)
     objectSw = SWRequester('https://swapi.dev/api')
@@ -94,6 +95,4 @@ def save_sw_data():
     for category in list(categories):
         with open(f'data/{category}.txt', 'w', encoding='utf-8') as file:
             text = objectSw.get_sw_info(category)
-            file.write(text)    
-
-
+            file.write(text)
