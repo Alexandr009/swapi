@@ -42,57 +42,26 @@ class APIRequester():
 class SWRequester(APIRequester):
 
     def get_sw_categories(self):
-        if self.base_url.endswith('/'):
-            url = self.base_url
-        else:
-            url = f'{self.base_url}/'
-
-        try:
-            response = requests.get(url)
-            if response.status_code == 200:
-                dict_result = json.loads(response.text)
-                print(dict_result)
-                for category, url in dict_result.items():
-                    print(f"Категория: {category}")
-                    print(f"URL: {url}\n")
-                return dict_result.keys()
-            else:
-                return f'<ошибка на сервере: {response.status_code}>'
-        except requests.ConnectionError:
-            return 'сетевая ошибка'
-        except requests.RequestException:
-            return 'ошибка соединения'
-        except json.JSONDecodeError:
-            return "Ошибка декодирования JSON"
+        response = self.get('/')
+        dict_result = json.loads(response.text)
+        for category, url in dict_result.items():
+            print(f"Категория: {category}")
+            print(f"URL: {url}\n")
+        return dict_result.keys()
 
     def get_sw_info(self, sw_type):
         if not sw_type or not sw_type.strip():
             return "Ошибка: тип не может быть пустым"
-
-        if self.base_url.endswith('/') and sw_type.startswith('/'):
-            url = f'{self.base_url}{sw_type[1:]}/'
-        elif not self.base_url.endswith('/') and not sw_type.startswith('/'):
-            url = f'{self.base_url}/{sw_type}/'
-        else:
-            url = f'{self.base_url}{sw_type}/'
-
-        try:
-            response = requests.get(url)
-            if response.status_code == 200:
-                return response.text
-            else:
-                return f'<ошибка на сервере: {response.status_code}>'
-        except requests.ConnectionError:
-            return 'сетевая ошибка'
-        except requests.RequestException:
-            return 'ошибка соединения'
+        response = self.get(f'{sw_type}/')
+        return response.text
 
 
 def save_sw_data():
-    Path("data").mkdir(exist_ok=True)
+    path_name = 'data'
+    Path(path_name).mkdir(exist_ok=True)
     objectSw = SWRequester('https://swapi.dev/api')
     categories = objectSw.get_sw_categories()
     for category in list(categories):
-        with open(f'data/{category}.txt', 'w', encoding='utf-8') as file:
+        with open(f'{path_name}/{category}.txt', 'w', encoding='utf-8') as file:
             text = objectSw.get_sw_info(category)
             file.write(text)
